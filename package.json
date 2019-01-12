@@ -1,0 +1,16 @@
+{
+  "name": "neslite",
+  "version": "1.0.0",
+  "description": "",
+  "main": "neslite.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NovaShang/neslite.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NovaShang/neslite/issues"
+  },
+  "homepage": "https://github.com/NovaShang/neslite#readme"
+}
