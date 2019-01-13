@@ -30,12 +30,22 @@ const ADDR = {
     ZPG=s => s.RAM[s.RAM[s.PC++]],
     ZPX=s => s.RAM[s.RAM[s.PC++] + s.X],
     ZPY=s => s.RAM[s.RAM[s.PC++] + s.Y],
-    ABS=s => s.RAM[s.RAM[s.PC++] | s.RAM[s.PC++] << 8],
-    ABX=s => s.RAM[s.RAM[s.PC++] | s.RAM[s.PC++] << 8 + s.X],
-    ABY=s => s.RAM[s.RAM[s.PC++] | s.RAM[s.PC++] << 8 + s.Y],
-    IND=s => { },
-    INX=s => { },
-    INY=s => { },
+    ABS=s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8)],
+    ABX=s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8) + s.X],
+    ABY=s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8) + s.Y],
+    IND=s => {
+        let tmp1 = s.RAM[s.PC++] | (s.RAM[s.PC++] << 8);
+        let tmp2 = (tmp1 & 0xFF00) | ((tmp1 + 1) & 0x00FF);
+        return s.RAM[s.RAM[tmp1] | (s.RAM[tmp2] << 8)];
+    },
+    INX=s => {
+        let tmp = s.RAM[s.PC++] + s.X;
+        return s.RAM[s.RAM[tmp] | (s.RAM(tmp + 1) << 8)];
+    },
+    INY=s => {
+        let tmp = s.RAM[s.PC++] + s.Y;
+        return s.RAM[s.RAM[tmp] | (s.RAM(tmp + 1) << 8)];
+    },
     SNG=s => 0,
     BRA=s => s.RAM[s.RAM[s.PC++] + s.PC]
 }
