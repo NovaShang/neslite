@@ -1,6 +1,144 @@
 
+// P位的各个Flag
+const FLAG = {
+    N: 0x80, V: 0x40, B: 0x10, D: 0x08,
+    I: 0x04, Z: 0x02, C: 0x01
+}
+
 // 指令集
 const INST = {
+
+    // 读取与储存
+    LDA: (s, a) => s.setA(s.RAM[a]),
+    LDX: (s, a) => s.setX(s.RAM[a]),
+    LDY: (s, a) => s.setY(s.RAM[a]),
+    STA: (s, a) => s.RAM[a] = s.A,
+    STX: (s, a) => s.RAM[a] = s.X,
+    STY: (s, a) => s.RAM[a] = s.Y,
+    STZ: (s, a) => s.RAM[a] = 0,
+
+    // 堆栈操作
+    PHA: (s, a) => s.push(s.A),
+    PHX: (s, a) => s.push(s.X),
+    PHY: (s, a) => s.push(s.Y),
+    PHP: (s, a) => s.push(s.P),
+    PLA: (s, a) => s.setA(s.pop()),
+    PLX: (s, a) => s.setX(s.pop()),
+    PLY: (s, a) => s.setY(s.pop()),
+    PLP: (s, a) => s.setP(s.pop()),
+    TSX: (s, a) => s.setX(s.SP),
+    TXS: (s, a) => s.SP = X,
+
+    // 递增与递减
+    INA: (s, a) => s.setA(s.A + 1),
+    INX: (s, a) => s.setX(s.X + 1),
+    INY: (s, a) => s.setY(s.Y + 1),
+    DEA: (s, a) => s.setA(s.A - 1),
+    DEX: (s, a) => s.setX(s.X - 1),
+    DEY: (s, a) => s.setY(s.Y - 1),
+    INC: (s, a) => s.setValueFlags(++s.RAM[a]),
+    DEC: (s, a) => s.setValueFlags(--s.RAM[a]),
+
+    // 移动位置操作
+    ASL: (s, a) => {
+        let value = s.RAM[a];
+        s.setC(value, true);
+        s.RAM[a] = (value << 1) & 0xff;
+        s.setValueFlags(s.RAM[a]);
+    },
+    LSR: (s, a) => {
+        let value = s.RAM[a];
+        s.setC(value, false);
+        s.RAM[a] = value >> 1;
+        s.setValueFlags(s.RAM[a]);
+    },
+    ROL: (s, a) => {
+        let value = s.RAM[a];
+        s.setC(value, true);
+        s.RAM[a] = ((value << 1) | s.getFlag(FLAG.C)) & 0xff;
+        s.setValueFlags(s.RAM[a]);
+    },
+    ROR: (s, a) => {
+        let value = s.RAM[a];
+        s.setC(value, false);
+        s.RAM[a] = (value >> 1) | (s.getFlag(FLAG.C) << 7);
+        s.setValueFlags(s.RAM[a]);
+    },
+
+    // 逻辑操作
+    AND: (s, a) => s.setA(s.A & s.RAM[a]),
+    ORA: (s, a) => s.setA(s.A | s.RAM[a]),
+    EOR: (s, a) => s.setA(s.A ^ s.RAM[a]),
+    BIT: (s, a) => {
+        let t = s.RAM[a];
+        s.setP(t >> 7 & 1, t >> 6 & 1, null, null, null, s.A & t ? 0 : 1, null)
+    },
+    CMP: (s, a) => s.setValueFlags(s.A - s.RAM[a], true),
+    CPX: (s, a) => s.setValueFlags(s.X - s.RAM[a], true),
+    CPY: (s, a) => s.setValueFlags(s.Y - s.RAM[a], true),
+
+    // 算术操作
+    ADC: (s, a) => {
+        let t = s.A + s.RAM[a] + s.getFlag(FLAG.C);
+        s.setA(t & 0xFF);
+        s.setFlag(FLAG.C, (t >> 8) > 0);
+        s.setFlag(FLAG.V, !((A ^ src) & 0x80) && ((A ^ result8) & 0x80));
+    },
+    SBC: (s, a) => {
+        let t = s.A - s.RAM[a] - (1 - s.getFlag(FLAG.C));
+        s.setA(t & 0xFF);
+        s.setFlag(FLAG.C, !(t >> 8));
+    },
+
+    // 流程控制
+    JMP: (s, a) => s.PC = a,
+    JSR: (s, a) => {
+        s.PC--;
+        s.push(s.PC >> 8);
+        s.push(s.PC & 0xFF);
+        s.PC = a;
+    },
+    RTS: (s, a) => s.PC = s.pop() | (s.pop() << 8),
+    RTI: (s, a) => {
+        s.P = s.pop();
+        s.setFlag(FLAG.B, 0);
+        s.PC = s.pop() | (s.pop() >> 8);
+    },
+    BRA: (s, a) => s.PC += a,
+    BEQ: (s, a) => s.getFlag(FLAG.Z) ? PC += a : 0,
+    BNE: (s, a) => s.getFlag(FLAG.Z) ? 0 : PC += a,
+    BCC: (s, a) => s.getFlag(FLAG.C) ? PC += a : 0,
+    BCS: (s, a) => s.getFlag(FLAG.C) ? 0 : PC += a,
+    BVC: (s, a) => s.getFlag(FLAG.V) ? PC += a : 0,
+    BVS: (s, a) => s.getFlag(FLAG.V) ? 0 : PC += a,
+    BMI: (s, a) => s.getFlag(FLAG.N) ? PC += a : 0,
+    BPL: (s, a) => s.getFlag(FLAG.N) ? 0 : PC += a,
+
+    // 处理器状态
+    CLC: (s, a) => s.setFlag(FLAG.C, 0),
+    CLD: (s, a) => s.setFlag(FLAG.D, 0),
+    CLI: (s, a) => s.setFlag(FLAG.I, 0),
+    CLV: (s, a) => s.setFlag(FLAG.V, 0),
+    SEC: (s, a) => s.setFlag(FLAG.C, 1),
+    SED: (s, a) => s.setFlag(FLAG.D, 1),
+    SEI: (s, a) => s.setFlag(FLAG.I, 1),
+
+    // 传送指令
+    TAX: (s, a) => s.setX(s.A),
+    TAY: (s, a) => s.setY(s.A),
+    TXA: (s, a) => s.setA(s.X),
+    TYA: (s, a) => s.setA(s.Y),
+
+    // 特殊指令
+    NOP: (s, a) => { },
+    BRK: (s, a) => {
+        s.PC++;
+        s.push(s.PC >> 8);
+        s.push(s.PC & 0xFF);
+        s.push(s.P);
+        s.setFlag(FLAG.I, 1);
+        s.PC = s.RAM[0xFFFE] | (s.RAM[0xFFFF] << 8);
+    }
 }
 
 // 寻址方式
@@ -13,24 +151,24 @@ const ADDR = {
     ABX: s => (s.RAM[s.PC++] | (s.RAM[s.PC++] << 8)) + s.X,
     ABY: s => (s.RAM[s.PC++] | (s.RAM[s.PC++] << 8)) + s.Y,
     IND: s => {
-        let tmp1 = s.RAM[s.PC++] | (s.RAM[s.PC++] << 8);
-        let tmp2 = (tmp1 & 0xFF00) | ((tmp1 + 1) & 0x00FF);// 复原6052的bug
-        return s.RAM[tmp1] | (s.RAM[tmp2] << 8);
+        let t1 = s.RAM[s.PC++] | (s.RAM[s.PC++] << 8);
+        let t2 = (t1 & 0xFF00) | ((t1 + 1) & 0x00FF);// 复原6052的bug
+        return s.RAM[t1] | (s.RAM[t2] << 8);
     },
     INX: s => {
-        let tmp = s.RAM[s.PC++] + s.X;
-        return s.RAM[tmp] | (s.RAM[tmp + 1] << 8);
+        let t = s.RAM[s.PC++] + s.X;
+        return s.RAM[t] | (s.RAM[t + 1] << 8);
     },
     INY: s => {
-        let tmp = s.RAM[s.PC++] + s.Y;
-        return s.RAM[tmp] | (s.RAM[tmp + 1] << 8);
+        let t = s.RAM[s.PC++] + s.Y;
+        return s.RAM[t] | (s.RAM[t + 1] << 8);
     },
     SNG: s => 0,
     BRA: s => {
-        var offset = s.RAM[s.PC++];
+        let offset = s.RAM[s.PC++];
         offset = (offset > 0x7f) ? - (0x100 - offset) : offset;
-        if (s.getN()) offset = -offset;
-        return s.PC + offset;
+        if (s.getFlag(FLAG.N)) offset = -offset;
+        return offset;
     }
 }
 
@@ -101,6 +239,7 @@ module.exports = class NesLite {
         this.OPTS = OPTS;
         this.ADDR = ADDR;
         this.INST = INST;
+        this.FLAG = FLAG;
     }
 
     start() {
@@ -112,35 +251,35 @@ module.exports = class NesLite {
 
     setA(value) {
         this.A = value;
-        setNV(A);
+        this.setValueFlags(value);
     }
 
     setX(value) {
         this.X = value;
-        setNV(value);
+        this.setValueFlags(value);
     }
 
     setY(value) {
         this.Y = value;
-        setNV(value);
+        this.setValueFlags(value);
     }
 
-    setNV(value) {
+    setValueFlags(value) {
         if (value) this.P &= 0xfd;
         else this.P |= 0x02;
         if (value & 0x80) this.P |= 0x80;
         else this.P &= 0x7f;
     }
 
-    getN() {
-        return false;
+    setFlag(flag, value) {
+        if (value == 1)
+            this.P |= flag;
+        else if (value == 0)
+            this.P &= ~flag;
     }
 
-    SetC(value, left) {
-        if (left)
-            this.P = (this.P & 0xfe) | (value & 1);
-        else
-            this.P = (this.P & 0xfe) | ((value >> 7) & 1);
+    getFlag(flag) {
+        return (this.P & flag) != 0
     }
 
     push(value) {

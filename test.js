@@ -82,14 +82,173 @@ describe("模拟器", () => {
             var s = new NesLite();
             s.RAM[0x600] = 0xA7;
             s.RAM[0x601] = 0x12;
-            assert.equal(s.ADDR.BRA(s), -(0x100 - 0xA7) + 0x601);
+            assert.equal(s.ADDR.BRA(s), -(0x100 - 0xA7));
             assert.equal(s.PC, 0x600 + 1);
-            assert.equal(s.ADDR.BRA(s), 0x602 + 0x12);
+            assert.equal(s.ADDR.BRA(s), 0x12);
         });
         it("SNG", () => {
             var s = new NesLite();
             s.ADDR.SNG(s);
             assert.equal(s.PC, 0x600);
         });
-    })
+    });
+    describe("工具方法", () => {
+        it("Set Flag", () => {
+            var s = new NesLite();
+            s.setFlag(s.FLAG.C, 1);
+            s.setFlag(s.FLAG.N, 1);
+            s.setFlag(s.FLAG.C, 0);
+            s.setFlag(s.FLAG.Z, 1);
+            s.setFlag(s.FLAG.V, 0);
+            assert.equal(s.P, 0x82);
+        });
+        it("Get Flag", () => {
+            var s = new NesLite();
+            s.P = 0x82;
+            assert.equal(s.getFlag(s.FLAG.N), 1);
+            assert.equal(s.getFlag(s.FLAG.Z), 1);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+            assert.equal(s.getFlag(s.FLAG.V), 0);
+        });
+        it("Stack Push", () => {
+            var s = new NesLite();
+            s.push(0x12);
+            s.push(0x13);
+            assert.equal(s.RAM[0x1FF], 0x12);
+            assert.equal(s.RAM[0x1FE], 0x13);
+            assert.equal(s.SP, 0xFD);
+        });
+        it("Stack Pop", () => {
+            var s = new NesLite();
+            s.RAM[0x1FF] = 0x12;
+            s.RAM[0x1FE] = 0x13;
+            s.SP = 0xFD;
+            assert.equal(s.pop(), 0x13);
+            assert.equal(s.pop(), 0x12);
+            assert.equal(s.SP, 0xFF);
+        });
+        it("Set Flags For Value : Pos", () => {
+            var s = new NesLite();
+            s.setValueFlags(0x10);
+            assert.equal(s.getFlag(s.FLAG.N), 0);
+            assert.equal(s.getFlag(s.FLAG.Z), 0);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+        });
+        it("Set Flags For Value : Neg", () => {
+            var s = new NesLite();
+            s.setValueFlags(0xA7);
+            assert.equal(s.getFlag(s.FLAG.N), 1);
+            assert.equal(s.getFlag(s.FLAG.Z), 0);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+        });
+        it("Set Flags For Value : Zero", () => {
+            var s = new NesLite();
+            s.setValueFlags(-0);
+            assert.equal(s.getFlag(s.FLAG.N), 0);
+            assert.equal(s.getFlag(s.FLAG.Z), 1);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+        });
+        it("Set A", () => {
+            var s = new NesLite();
+            s.setA(0xA7);
+            assert.equal(s.A, 0xA7);
+            assert.equal(s.getFlag(s.FLAG.N), 1);
+        });
+        it("Set X", () => {
+            var s = new NesLite();
+            s.setX(0xA7);
+            assert.equal(s.X, 0xA7);
+            assert.equal(s.getFlag(s.FLAG.N), 1);
+        });
+        it("Set Y", () => {
+            var s = new NesLite();
+            s.setY(0xA7);
+            assert.equal(s.Y, 0xA7);
+            assert.equal(s.getFlag(s.FLAG.N), 1);
+        });
+    });
+    describe("指令集", () => {
+        it("LDA", () => {
+            let s = new NesLite();
+            s.RAM[0x1000] = 66;
+            s.INST.LDA(s, 0x1000);
+            assert.equal(s.A, 66);
+        });
+        it("LDX", () => {
+            let s = new NesLite();
+            s.RAM[0x1000] = 66;
+            s.INST.LDX(s, 0x1000);
+            assert.equal(s.X, 66);
+        });
+        it("LDY", () => {
+            let s = new NesLite();
+            s.RAM[0x1000] = 66;
+            s.INST.LDY(s, 0x1000);
+            assert.equal(s.Y, 66);
+        });
+        it("STA", () => {
+            let s = new NesLite();
+            s.setA(66);
+            s.INST.STA(s, 0x1000);
+            assert.equal(s.RAM[0x1000], 66);
+        });
+        it("STX", () => {
+            let s = new NesLite();
+            s.setX(66);
+            s.INST.STX(s, 0x1000);
+            assert.equal(s.RAM[0x1000], 66);
+        });
+        it("STY", () => {
+            let s = new NesLite();
+            s.setY(66);
+            s.INST.STY(s, 0x1000);
+            assert.equal(s.RAM[0x1000], 66);
+        });
+        it("ADC No Carry", () => {
+            let s = new NesLite();
+            s.setA(66);
+            s.setFlag(s.FLAG.C, 1);
+            s.RAM[0x1000] = 3;
+            s.INST.ADC(s, 0x1000);
+            assert.equal(s.A, 70);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+        });
+        it("ADC Carry", () => {
+            let s = new NesLite();
+            s.setA(200);
+            s.setFlag(s.FLAG.C, 1);
+            s.RAM[0x1000] = 200;
+            s.INST.ADC(s, 0x1000);
+            assert.equal(s.A, 145);
+            assert.equal(s.getFlag(s.FLAG.C), 1);
+        });
+        it("SBC No Borrow", () => {
+            let s = new NesLite();
+            s.setA(200);
+            s.setFlag(s.FLAG.C, 1);
+            s.RAM[0x1000] = 100;
+            s.INST.SBC(s, 0x1000);
+            assert.equal(s.A, 100);
+            assert.equal(s.getFlag(s.FLAG.C), 1);
+        });
+        it("SBC Borrow", () => {
+            let s = new NesLite();
+            s.setA(100);
+            s.setFlag(s.FLAG.C, 0);
+            s.RAM[0x1000] = 200;
+            s.INST.SBC(s, 0x1000);
+            assert.equal(s.A, 101);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+        });
+        it("SBC Zero", () => {
+            let s = new NesLite();
+            s.setA(100);
+            s.setFlag(s.FLAG.C, 0);
+            s.RAM[0x1000] = 100;
+            s.INST.SBC(s, 0x1000);
+            assert.equal(s.A, 255);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+        });
+
+    });
 });
