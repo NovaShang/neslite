@@ -35,6 +35,7 @@ const ADDR = {
     ABY=s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8) + s.Y],
     IND=s => {
         let tmp1 = s.RAM[s.PC++] | (s.RAM[s.PC++] << 8);
+        // 复原6052的bug
         let tmp2 = (tmp1 & 0xFF00) | ((tmp1 + 1) & 0x00FF);
         return s.RAM[s.RAM[tmp1] | (s.RAM[tmp2] << 8)];
     },
@@ -207,18 +208,6 @@ const OPTS = {
     0x42: [INST.WDM, ADDR.ZPG],
 }
 
-
-function start() {
-    while (getByte()) {
-
-    }
-}
-
-function readRom() {
-
-}
-
-
 export class NesLite {
 
     constructor() {
@@ -227,6 +216,16 @@ export class NesLite {
         this.SP = 0xff;
         this.P = 0;
         this.RAM = new int8Array[256 * 256];
+        this.OPTS=OPTS;
+        this.ADDR=ADDR;
+        this.INST=INST;
+    }
+
+    start() {
+        while (true) {
+            let opt = OPTS[this.RAM[this.PC]];
+            opt[0](this, opt[1](this));
+        }
     }
 
     setA(value) {
@@ -238,6 +237,7 @@ export class NesLite {
         this.X = value;
         setNV(value);
     }
+
     setY(value) {
         this.Y = value;
         setNV(value);
@@ -268,5 +268,4 @@ export class NesLite {
             throw "Stack Empty";
         return this.RAM[this.SP + 0x100];
     }
-
 }
