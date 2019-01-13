@@ -1,54 +1,33 @@
 
 // 指令集
 const INST = {
-    LDA=(s, x) => { STATE.A = M; PSW.N = x < 0; },
-    // 流程控制指令
-    JMP=M => STATE.PC = M,
-    JSP=M => { STATE.SP = STATE.PC; STATE.PC = M; },
-    RTS=() => STATE.PC = STATE.SP,
-    // 处理器状态指令
-    CLC=() => PSW.C = false,
-    CLD=() => PSW.D = false,
-    CLI=() => PSW.I = false,
-    CLV=() => PSW.V = false,
-    SEC=() => PSW.C = true,
-    SED=() => PSW.D = true,
-    SEI=() => PSW.I = true,
-    // 传送指令
-    TAX=() => STATE.X = STATE.A,
-    TAY=() => STATE.Y = STATE.A,
-    TXA=() => STATE.A = STATE.X,
-    TYA=() => STATE.A = STATE.Y,
-    // 特殊指令
-    NOP=() => { },
-    BRK=() => { STATE.SP = STATE.PC; STATE.PC = 0xFFFE; }
 }
 
 // 寻址方式
 const ADDR = {
-    IMM=s => s.RAM[s.PC++],
-    ZPG=s => s.RAM[s.RAM[s.PC++]],
-    ZPX=s => s.RAM[s.RAM[s.PC++] + s.X],
-    ZPY=s => s.RAM[s.RAM[s.PC++] + s.Y],
-    ABS=s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8)],
-    ABX=s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8) + s.X],
-    ABY=s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8) + s.Y],
-    IND=s => {
+    IMM: s => s.RAM[s.PC++],
+    ZPG: s => s.RAM[s.RAM[s.PC++]],
+    ZPX: s => s.RAM[(s.RAM[s.PC++] + s.X) & 0xFF],
+    ZPY: s => s.RAM[(s.RAM[s.PC++] + s.Y) & 0xFF],
+    ABS: s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8)],
+    ABX: s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8) + s.X],
+    ABY: s => s.RAM[s.RAM[s.PC++] | (s.RAM[s.PC++] << 8) + s.Y],
+    IND: s => {
         let tmp1 = s.RAM[s.PC++] | (s.RAM[s.PC++] << 8);
         // 复原6052的bug
         let tmp2 = (tmp1 & 0xFF00) | ((tmp1 + 1) & 0x00FF);
         return s.RAM[s.RAM[tmp1] | (s.RAM[tmp2] << 8)];
     },
-    INX=s => {
+    INX: s => {
         let tmp = s.RAM[s.PC++] + s.X;
         return s.RAM[s.RAM[tmp] | (s.RAM(tmp + 1) << 8)];
     },
-    INY=s => {
+    INY: s => {
         let tmp = s.RAM[s.PC++] + s.Y;
         return s.RAM[s.RAM[tmp] | (s.RAM(tmp + 1) << 8)];
     },
-    SNG=s => 0,
-    BRA=s => s.RAM[s.RAM[s.PC++] + s.PC]
+    SNG: s => 0,
+    BRA: s => s.RAM[s.RAM[s.PC++] + s.PC]
 }
 
 // 操作码 - 汇编指令 - 寻址方式的对应关系
@@ -208,17 +187,17 @@ const OPTS = {
     0x42: [INST.WDM, ADDR.ZPG],
 }
 
-export class NesLite {
+module.exports = class NesLite {
 
     constructor() {
         this.A = this.X = this.Z = 0;
         this.PC = 0x600;
         this.SP = 0xff;
         this.P = 0;
-        this.RAM = new int8Array[256 * 256];
-        this.OPTS=OPTS;
-        this.ADDR=ADDR;
-        this.INST=INST;
+        this.RAM = new Uint8Array(256 * 256);
+        this.OPTS = OPTS;
+        this.ADDR = ADDR;
+        this.INST = INST;
     }
 
     start() {

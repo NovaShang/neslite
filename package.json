@@ -7,10 +7,16 @@
     "type": "git",
     "url": "git+https://github.com/NovaShang/neslite.git"
   },
+  "scripts": {
+    "test": "mocha test.js"
+  },
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/NovaShang/neslite/issues"
   },
-  "homepage": "https://github.com/NovaShang/neslite#readme"
+  "homepage": "https://github.com/NovaShang/neslite#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
 }
