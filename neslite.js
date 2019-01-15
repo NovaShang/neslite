@@ -27,7 +27,7 @@ const INST = {
     PLY: (s, a) => s.setY(s.pop()),
     PLP: (s, a) => s.setP(s.pop()),
     TSX: (s, a) => s.setX(s.SP),
-    TXS: (s, a) => s.SP = X,
+    TXS: (s, a) => s.SP = s.X,
 
     // 递增与递减
     INA: (s, a) => s.setA(s.A + 1),
@@ -69,41 +69,33 @@ const INST = {
     AND: (s, a) => s.setA(s.A & s.RAM[a]),
     ORA: (s, a) => s.setA(s.A | s.RAM[a]),
     EOR: (s, a) => s.setA(s.A ^ s.RAM[a]),
+    CMP: (s, a) => s.setValueFlags(s.A - s.RAM[a], true),
+    CPX: (s, a) => s.setValueFlags(s.X - s.RAM[a], true),
+    CPY: (s, a) => s.setValueFlags(s.Y - s.RAM[a], true),
     BIT: (s, a) => {
         let t = s.RAM[a];
         s.setP(t >> 7 & 1, t >> 6 & 1, null, null, null, s.A & t ? 0 : 1, null)
     },
-    CMP: (s, a) => s.setValueFlags(s.A - s.RAM[a], true),
-    CPX: (s, a) => s.setValueFlags(s.X - s.RAM[a], true),
-    CPY: (s, a) => s.setValueFlags(s.Y - s.RAM[a], true),
 
     // 算术操作
     ADC: (s, a) => {
-        let t = s.A + s.RAM[a] + s.getFlag(FLAG.C);
-        s.setA(t & 0xFF);
+        let m = s.RAM[a];
+        let t = s.A + m + s.getFlag(FLAG.C);
         s.setFlag(FLAG.C, (t >> 8) > 0);
-        s.setFlag(FLAG.V, !((A ^ src) & 0x80) && ((A ^ result8) & 0x80));
+        s.setFlag(FLAG.V, ((~(s.A ^ m)) & (s.A ^ t) & 0x80) != 0)
+        s.setA(t & 0xFF);
     },
     SBC: (s, a) => {
-        let t = s.A - s.RAM[a] - (1 - s.getFlag(FLAG.C));
-        s.setA(t & 0xFF);
+        let m = s.RAM[a];
+        let t = s.A - m - (1 - s.getFlag(FLAG.C));
         s.setFlag(FLAG.C, !(t >> 8));
+        s.setFlag(FLAG.V, ((~(s.A ^ m)) & (s.A ^ t) & 0x80) == 0)
+        s.setA(t & 0xFF);
     },
 
     // 流程控制
     JMP: (s, a) => s.PC = a,
-    JSR: (s, a) => {
-        s.PC--;
-        s.push(s.PC >> 8);
-        s.push(s.PC & 0xFF);
-        s.PC = a;
-    },
     RTS: (s, a) => s.PC = s.pop() | (s.pop() << 8),
-    RTI: (s, a) => {
-        s.P = s.pop();
-        s.setFlag(FLAG.B, 0);
-        s.PC = s.pop() | (s.pop() >> 8);
-    },
     BRA: (s, a) => s.PC += a,
     BEQ: (s, a) => s.getFlag(FLAG.Z) ? PC += a : 0,
     BNE: (s, a) => s.getFlag(FLAG.Z) ? 0 : PC += a,
@@ -113,6 +105,17 @@ const INST = {
     BVS: (s, a) => s.getFlag(FLAG.V) ? 0 : PC += a,
     BMI: (s, a) => s.getFlag(FLAG.N) ? PC += a : 0,
     BPL: (s, a) => s.getFlag(FLAG.N) ? 0 : PC += a,
+    JSR: (s, a) => {
+        s.PC--;
+        s.push(s.PC >> 8);
+        s.push(s.PC & 0xFF);
+        s.PC = a;
+    },
+    RTI: (s, a) => {
+        s.P = s.pop();
+        s.setFlag(FLAG.B, 0);
+        s.PC = s.pop() | (s.pop() >> 8);
+    },
 
     // 处理器状态
     CLC: (s, a) => s.setFlag(FLAG.C, 0),
