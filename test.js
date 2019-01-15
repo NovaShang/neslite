@@ -237,7 +237,7 @@ describe("模拟器", () => {
             s.setFlag(s.FLAG.C, 0);
             s.RAM[0x1000] = 200;
             s.INST.SBC(s, 0x1000);
-            assert.equal(s.A, 101);
+            assert.equal(s.A, 155);
             assert.equal(s.getFlag(s.FLAG.C), 0);
         });
         it("SBC Zero", () => {
@@ -249,6 +249,5 @@ describe("模拟器", () => {
             assert.equal(s.A, 255);
             assert.equal(s.getFlag(s.FLAG.C), 0);
         });
-
     });
 });
