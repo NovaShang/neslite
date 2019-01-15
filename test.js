@@ -127,23 +127,23 @@ describe("模拟器", () => {
             assert.equal(s.pop(), 0x12);
             assert.equal(s.SP, 0xFF);
         });
-        it("Set Flags For Value : Pos", () => {
+        it("Set NZ For Value : Pos", () => {
             var s = new NesLite();
-            s.setValueFlags(0x10);
+            s.setNZ(0x10);
             assert.equal(s.getFlag(s.FLAG.N), 0);
             assert.equal(s.getFlag(s.FLAG.Z), 0);
             assert.equal(s.getFlag(s.FLAG.C), 0);
         });
-        it("Set Flags For Value : Neg", () => {
+        it("Set NZ For Value : Neg", () => {
             var s = new NesLite();
-            s.setValueFlags(0xA7);
+            s.setNZ(0xA7);
             assert.equal(s.getFlag(s.FLAG.N), 1);
             assert.equal(s.getFlag(s.FLAG.Z), 0);
             assert.equal(s.getFlag(s.FLAG.C), 0);
         });
-        it("Set Flags For Value : Zero", () => {
+        it("Set NZ For Value : Zero", () => {
             var s = new NesLite();
-            s.setValueFlags(-0);
+            s.setNZ(0);
             assert.equal(s.getFlag(s.FLAG.N), 0);
             assert.equal(s.getFlag(s.FLAG.Z), 1);
             assert.equal(s.getFlag(s.FLAG.C), 0);
@@ -399,12 +399,50 @@ describe("模拟器", () => {
             s.INST.CLI(s, 0);
             assert.equal(s.getFlag(s.FLAG.I), 0);
         });
-        it("CMP", () => {
+        it("CMP Smaller", () => {
+            let s = new NesLite();
+            s.RAM[0x1000] = 210;
+            s.setA(200);
+            s.INST.CMP(s, 0x1000);
+            assert.equal(s.getFlag(s.FLAG.N), 1);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+            assert.equal(s.getFlag(s.FLAG.Z), 0);
+        });
+        it("CMP Bigger", () => {
             let s = new NesLite();
             s.RAM[0x1000] = 200;
             s.setA(210);
             s.INST.CMP(s, 0x1000);
-            assert.equal(s.getFlag(s.FLAG.I), 0);
+            assert.equal(s.getFlag(s.FLAG.N), 0);
+            assert.equal(s.getFlag(s.FLAG.C), 1);
+            assert.equal(s.getFlag(s.FLAG.Z), 0);
+        });
+        it("CMP Same", () => {
+            let s = new NesLite();
+            s.RAM[0x1000] = 100;
+            s.setA(100);
+            s.INST.CMP(s, 0x1000);
+            assert.equal(s.getFlag(s.FLAG.N), 0);
+            assert.equal(s.getFlag(s.FLAG.C), 1);
+            assert.equal(s.getFlag(s.FLAG.Z), 1);
+        });
+        it("CPX", () => {
+            let s = new NesLite();
+            s.RAM[0x1000] = 210;
+            s.setX(200);
+            s.INST.CPX(s, 0x1000);
+            assert.equal(s.getFlag(s.FLAG.N), 1);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+            assert.equal(s.getFlag(s.FLAG.Z), 0);
+        });
+        it("CPY", () => {
+            let s = new NesLite();
+            s.RAM[0x1000] = 210;
+            s.setY(200);
+            s.INST.CPY(s, 0x1000);
+            assert.equal(s.getFlag(s.FLAG.N), 1);
+            assert.equal(s.getFlag(s.FLAG.C), 0);
+            assert.equal(s.getFlag(s.FLAG.Z), 0);
         });
     });
 });

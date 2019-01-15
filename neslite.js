@@ -36,42 +36,42 @@ const INST = {
     DEA: (s, a) => s.setA(s.A - 1),
     DEX: (s, a) => s.setX(s.X - 1),
     DEY: (s, a) => s.setY(s.Y - 1),
-    INC: (s, a) => s.setValueFlags(++s.RAM[a]),
-    DEC: (s, a) => s.setValueFlags(--s.RAM[a]),
+    INC: (s, a) => s.setNZ(++s.RAM[a]),
+    DEC: (s, a) => s.setNZ(--s.RAM[a]),
 
     // 移动位置操作
     ASL: (s, a) => {
         let value = s.RAM[a];
         s.setC(value, true);
         s.RAM[a] = (value << 1) & 0xff;
-        s.setValueFlags(s.RAM[a]);
+        s.setNZ(s.RAM[a]);
     },
     LSR: (s, a) => {
         let value = s.RAM[a];
         s.setC(value, false);
         s.RAM[a] = value >> 1;
-        s.setValueFlags(s.RAM[a]);
+        s.setNZ(s.RAM[a]);
     },
     ROL: (s, a) => {
         let value = s.RAM[a];
         s.setC(value, true);
         s.RAM[a] = ((value << 1) | s.getFlag(FLAG.C)) & 0xff;
-        s.setValueFlags(s.RAM[a]);
+        s.setNZ(s.RAM[a]);
     },
     ROR: (s, a) => {
         let value = s.RAM[a];
         s.setC(value, false);
         s.RAM[a] = (value >> 1) | (s.getFlag(FLAG.C) << 7);
-        s.setValueFlags(s.RAM[a]);
+        s.setNZ(s.RAM[a]);
     },
 
     // 逻辑操作
     AND: (s, a) => s.setA(s.A & s.RAM[a]),
     ORA: (s, a) => s.setA(s.A | s.RAM[a]),
     EOR: (s, a) => s.setA(s.A ^ s.RAM[a]),
-    CMP: (s, a) => s.setValueFlags(s.A - s.RAM[a], true),
-    CPX: (s, a) => s.setValueFlags(s.X - s.RAM[a], true),
-    CPY: (s, a) => s.setValueFlags(s.Y - s.RAM[a], true),
+    CMP: (s, a) => s.setNZC(s.A - s.RAM[a]),
+    CPX: (s, a) => s.setNZC(s.X - s.RAM[a]),
+    CPY: (s, a) => s.setNZC(s.Y - s.RAM[a]),
     BIT: (s, a) => {
         let t = s.RAM[a];
         s.setP(t >> 7 & 1, t >> 6 & 1, null, null, null, s.A & t ? 0 : 1, null)
@@ -254,24 +254,29 @@ module.exports = class NesLite {
 
     setA(value) {
         this.A = value;
-        this.setValueFlags(value);
+        this.setNZ(value);
     }
 
     setX(value) {
         this.X = value;
-        this.setValueFlags(value);
+        this.setNZ(value);
     }
 
     setY(value) {
         this.Y = value;
-        this.setValueFlags(value);
+        this.setNZ(value);
     }
 
-    setValueFlags(value) {
+    setNZ(value, setC = false) {
         if (value) this.P &= 0xfd;
         else this.P |= 0x02;
         if (value & 0x80) this.P |= 0x80;
         else this.P &= 0x7f;
+    }
+
+    setNZC(value) {
+        this.setNZ(value);
+        this.setFlag(FLAG.C, value >= 0);
     }
 
     setFlag(flag, value) {
