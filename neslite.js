@@ -25,7 +25,10 @@ const INST = {
     PLA: (s, a) => s.setA(s.pop()),
     PLX: (s, a) => s.setX(s.pop()),
     PLY: (s, a) => s.setY(s.pop()),
-    PLP: (s, a) => s.setP(s.pop()),
+    PLP: (s, a) => {
+        s.P = s.pop();
+        s.setFlag(FLAG.B, 1);
+    },
     TSX: (s, a) => s.setX(s.SP),
     TXS: (s, a) => s.SP = s.X,
 
@@ -42,25 +45,25 @@ const INST = {
     // 移动位置操作
     ASL: (s, a) => {
         let value = s.RAM[a];
-        s.setC(value, true);
+        s.setFlag(FLAG.C, value >> 7 & 1 != 0);
         s.RAM[a] = (value << 1) & 0xff;
         s.setNZ(s.RAM[a]);
     },
     LSR: (s, a) => {
         let value = s.RAM[a];
-        s.setC(value, false);
+        s.setFlag(FLAG.C, value & 1 != 0);
         s.RAM[a] = value >> 1;
         s.setNZ(s.RAM[a]);
     },
     ROL: (s, a) => {
         let value = s.RAM[a];
-        s.setC(value, true);
+        s.setFlag(FLAG.C, value >> 7 & 1);
         s.RAM[a] = ((value << 1) | s.getFlag(FLAG.C)) & 0xff;
         s.setNZ(s.RAM[a]);
     },
     ROR: (s, a) => {
         let value = s.RAM[a];
-        s.setC(value, false);
+        s.setFlag(FLAG.C, value & 1 != 0);
         s.RAM[a] = (value >> 1) | (s.getFlag(FLAG.C) << 7);
         s.setNZ(s.RAM[a]);
     },
@@ -74,7 +77,9 @@ const INST = {
     CPY: (s, a) => s.setNZC(s.Y - s.RAM[a]),
     BIT: (s, a) => {
         let t = s.RAM[a];
-        s.setP(t >> 7 & 1, t >> 6 & 1, null, null, null, s.A & t ? 0 : 1, null)
+        s.setFlag(FLAG.N, t >> 7 & 1);
+        s.setFlag(FLAG.V, t >> 6 & 1);
+        s.setFlag(FLAG.Z, s.A & t ? 0 : 1);
     },
 
     // 算术操作
@@ -97,14 +102,14 @@ const INST = {
     JMP: (s, a) => s.PC = a,
     RTS: (s, a) => s.PC = s.pop() | (s.pop() << 8),
     BRA: (s, a) => s.PC += a,
-    BEQ: (s, a) => s.getFlag(FLAG.Z) ? PC += a : 0,
-    BNE: (s, a) => s.getFlag(FLAG.Z) ? 0 : PC += a,
-    BCC: (s, a) => s.getFlag(FLAG.C) ? PC += a : 0,
-    BCS: (s, a) => s.getFlag(FLAG.C) ? 0 : PC += a,
-    BVC: (s, a) => s.getFlag(FLAG.V) ? PC += a : 0,
-    BVS: (s, a) => s.getFlag(FLAG.V) ? 0 : PC += a,
-    BMI: (s, a) => s.getFlag(FLAG.N) ? PC += a : 0,
-    BPL: (s, a) => s.getFlag(FLAG.N) ? 0 : PC += a,
+    BEQ: (s, a) => s.getFlag(FLAG.Z) ? s.PC += a : 0,
+    BNE: (s, a) => s.getFlag(FLAG.Z) ? 0 : s.PC += a,
+    BCS: (s, a) => s.getFlag(FLAG.C) ? s.PC += a : 0,
+    BCC: (s, a) => s.getFlag(FLAG.C) ? 0 : s.PC += a,
+    BVS: (s, a) => s.getFlag(FLAG.V) ? s.PC += a : 0,
+    BVC: (s, a) => s.getFlag(FLAG.V) ? 0 : s.PC += a,
+    BMI: (s, a) => s.getFlag(FLAG.N) ? s.PC += a : 0,
+    BPL: (s, a) => s.getFlag(FLAG.N) ? 0 : s.PC += a,
     JSR: (s, a) => {
         s.PC--;
         s.push(s.PC >> 8);
