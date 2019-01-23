@@ -633,7 +633,7 @@ describe("模拟器", () => {
         });
         it("JSR", () => {
             let s = new NesLite();
-            s.PC = 0x621;
+            s.PC = 0x622;
             s.INST.JSR(s, 0x800);
             assert.equal(s.PC, 0x800);
             assert.equal(s.RAM[0x1FF], 0x6);

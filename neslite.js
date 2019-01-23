@@ -100,7 +100,7 @@ const INST = {
 
     // 流程控制
     JMP: (s, a) => s.PC = a,
-    RTS: (s, a) => s.PC = (s.pop() | (s.pop() << 8)) - 1,
+    RTS: (s, a) => s.PC = (s.pop() | (s.pop() << 8)) + 1,
     BRA: (s, a) => s.PC += a,
     BEQ: (s, a) => s.getFlag(FLAG.Z) ? s.PC += a : 0,
     BNE: (s, a) => s.getFlag(FLAG.Z) ? 0 : s.PC += a,
