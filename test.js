@@ -556,92 +556,96 @@ describe("模拟器", () => {
         });
         it("JMP", () => {
             let s = new NesLite();
-            s.INST.JMP(s,0x1000);
-            assert.equal(s.PC,0x1000);
+            s.INST.JMP(s, 0x1000);
+            assert.equal(s.PC, 0x1000);
         });
-        it("BEQ True",()=>{
+        it("BEQ True", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.Z,1);
-            s.INST.BEQ(s,0x100);
-            assert.equal(s.PC,0x700);
+            s.setFlag(s.FLAG.Z, 1);
+            s.INST.BEQ(s, 0x100);
+            assert.equal(s.PC, 0x700);
         });
-        it("BEQ False",()=>{
+        it("BEQ False", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.Z,0);
-            s.INST.BEQ(s,0x100);
-            assert.equal(s.PC,0x600);
+            s.setFlag(s.FLAG.Z, 0);
+            s.INST.BEQ(s, 0x100);
+            assert.equal(s.PC, 0x600);
         });
-        it("BNE True",()=>{
+        it("BNE True", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.Z,1);
-            s.INST.BNE(s,0x100);
-            assert.equal(s.PC,0x600);
+            s.setFlag(s.FLAG.Z, 1);
+            s.INST.BNE(s, 0x100);
+            assert.equal(s.PC, 0x600);
         });
-        it("BNE False",()=>{
+        it("BNE False", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.Z,0);
-            s.INST.BNE(s,0x100);
-            assert.equal(s.PC,0x700);
+            s.setFlag(s.FLAG.Z, 0);
+            s.INST.BNE(s, 0x100);
+            assert.equal(s.PC, 0x700);
         });
-        it("BCS True",()=>{
+        it("BCS True", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.C,1);
-            s.INST.BCS(s,0x100);
-            assert.equal(s.PC,0x700);
+            s.setFlag(s.FLAG.C, 1);
+            s.INST.BCS(s, 0x100);
+            assert.equal(s.PC, 0x700);
         });
-        it("BCS False",()=>{
+        it("BCS False", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.C,0);
-            s.INST.BCS(s,0x100);
-            assert.equal(s.PC,0x600);
+            s.setFlag(s.FLAG.C, 0);
+            s.INST.BCS(s, 0x100);
+            assert.equal(s.PC, 0x600);
         });
-        it("BCC True",()=>{
+        it("BCC True", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.C,1);
-            s.INST.BCC(s,0x100);
-            assert.equal(s.PC,0x600);
+            s.setFlag(s.FLAG.C, 1);
+            s.INST.BCC(s, 0x100);
+            assert.equal(s.PC, 0x600);
         });
-        it("BCC False",()=>{
+        it("BCC False", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.C,0);
-            s.INST.BCC(s,0x100);
-            assert.equal(s.PC,0x700);
+            s.setFlag(s.FLAG.C, 0);
+            s.INST.BCC(s, 0x100);
+            assert.equal(s.PC, 0x700);
         });
-        it("BVS True",()=>{
+        it("BVS True", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.V,1);
-            s.INST.BVS(s,0x100);
-            assert.equal(s.PC,0x700);
+            s.setFlag(s.FLAG.V, 1);
+            s.INST.BVS(s, 0x100);
+            assert.equal(s.PC, 0x700);
         });
-        it("BVS False",()=>{
+        it("BVS False", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.V,0);
-            s.INST.BVS(s,0x100);
-            assert.equal(s.PC,0x600);
+            s.setFlag(s.FLAG.V, 0);
+            s.INST.BVS(s, 0x100);
+            assert.equal(s.PC, 0x600);
         });
-        it("BVC True",()=>{
+        it("BVC True", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.V,1);
-            s.INST.BVC(s,0x100);
-            assert.equal(s.PC,0x600);
+            s.setFlag(s.FLAG.V, 1);
+            s.INST.BVC(s, 0x100);
+            assert.equal(s.PC, 0x600);
         });
-        it("BVC False",()=>{
+        it("BVC False", () => {
             let s = new NesLite();
-            s.setFlag(s.FLAG.V,0);
-            s.INST.BVC(s,0x100);
-            assert.equal(s.PC,0x700);
+            s.setFlag(s.FLAG.V, 0);
+            s.INST.BVC(s, 0x100);
+            assert.equal(s.PC, 0x700);
         });
-
-
-
-
-
-
-
-
-
-
-
-
+        it("JSR", () => {
+            let s = new NesLite();
+            s.PC = 0x621;
+            s.INST.JSR(s, 0x800);
+            assert.equal(s.PC, 0x800);
+            assert.equal(s.RAM[0x1FF], 0x6);
+            assert.equal(s.RAM[0x1FE], 0x21);
+        });
+        it("RTS", () => {
+            let s = new NesLite();
+            s.SP = 0xFD;
+            s.RAM[0x1FF] = 0x6;
+            s.RAM[0x1FE] = 0x21;
+            s.INST.RTS(s);
+            assert.equal(s.PC, 0x622);
+        });
     });
 });
