@@ -541,9 +541,9 @@ describe("模拟器", () => {
         });
         it("PHP", () => {
             let s = new NesLite();
-            s.P = 0x2F;
+            s.P = 0xC7;
             s.INST.PHP(s, 0);
-            assert.equal(s.RAM[0x1FF], 0x2F);
+            assert.equal(s.RAM[0x1FF], 0xCF);
             assert.equal(s.SP, 0xFE);
         });
         it("PLP", () => {
@@ -646,6 +646,32 @@ describe("模拟器", () => {
             s.RAM[0x1FE] = 0x21;
             s.INST.RTS(s);
             assert.equal(s.PC, 0x622);
+        });
+        it("NOP", () => {
+            let s = new NesLite();
+            s.INST.NOP(s, 0);
+        });
+        it("BRK", () => {
+            let s = new NesLite();
+            s.RAM[0xFFFF] = 0x8;
+            s.RAM[0xFFFE] = 0x20;
+            s.P = 0xC7;
+            s.INST.BRK(s, 0);
+            assert.equal(s.PC, 0x820)
+            assert.equal(s.RAM[0x1FF], 0x6);
+            assert.equal(s.RAM[0x1FE], 0x1);
+            assert.equal(s.RAM[0x1FD], 0xCF);
+            assert.equal(s.getFlag(s.FLAG.I),1);
+        });
+        it("RTI", () => {
+            let s = new NesLite();
+            s.RAM[0x1FF] = 0x8;
+            s.RAM[0x1FE] = 0x2;
+            s.RAM[0x1FD] = 0xCF;
+            s.INST.RTI(s, 0);
+            
+            assert.equal(s.PC, 0x802);
+            assert.equal(s.P, 0xC7);
         });
     });
 });

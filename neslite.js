@@ -21,7 +21,7 @@ const INST = {
     PHA: (s, a) => s.push(s.A),
     PHX: (s, a) => s.push(s.X),
     PHY: (s, a) => s.push(s.Y),
-    PHP: (s, a) => s.push(s.P),
+    PHP: (s, a) => s.push(s.P | FLAG.B),
     PLA: (s, a) => s.setA(s.pop()),
     PLX: (s, a) => s.setX(s.pop()),
     PLY: (s, a) => s.setY(s.pop()),
@@ -143,7 +143,7 @@ const INST = {
         s.PC++;
         s.push(s.PC >> 8);
         s.push(s.PC & 0xFF);
-        s.push(s.P);
+        s.push(s.P|FLAG.B);
         s.setFlag(FLAG.I, 1);
         s.PC = s.RAM[0xFFFE] | (s.RAM[0xFFFF] << 8);
     }
