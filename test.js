@@ -543,7 +543,7 @@ describe("模拟器", () => {
             let s = new NesLite();
             s.P = 0xC7;
             s.INST.PHP(s, 0);
-            assert.equal(s.RAM[0x1FF], 0xCF);
+            assert.equal(s.RAM[0x1FF], 0xD7);
             assert.equal(s.SP, 0xFE);
         });
         it("PLP", () => {
