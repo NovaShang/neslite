@@ -143,7 +143,7 @@ const INST = {
         s.PC++;
         s.push(s.PC >> 8);
         s.push(s.PC & 0xFF);
-        s.push(s.P|FLAG.B);
+        s.push(s.P | FLAG.B);
         s.setFlag(FLAG.I, 1);
         s.PC = s.RAM[0xFFFE] | (s.RAM[0xFFFF] << 8);
     }
@@ -248,14 +248,16 @@ module.exports = class NesLite {
         this.ADDR = ADDR;
         this.INST = INST;
         this.FLAG = FLAG;
+        this.Message = "";
+        this.Running = false;
     }
 
-    start() {
-        while (true) {
-            let opt = OPTS[this.RAM[this.PC]];
-            opt[0](this, opt[1](this));
-        }
-    }
+    // start() {
+    //     while (this.Running) {
+    //         let opt = OPTS[this.RAM[this.PC]];
+    //         opt[0](this, opt[1](this));
+    //     }
+    // }
 
     setA(value) {
         this.A = value;
@@ -285,10 +287,9 @@ module.exports = class NesLite {
     }
 
     setFlag(flag, value) {
-        if (value == 1)
-            this.P |= flag;
-        else if (value == 0)
+        if (value == 0)
             this.P &= ~flag;
+        else this.P |= flag;
     }
 
     getFlag(flag) {
@@ -297,13 +298,17 @@ module.exports = class NesLite {
 
     push(value) {
         this.RAM[this.SP + 0x100] = value;
-        if (--this.SP < 0)
-            throw "Stack Overflow";
+        if (--this.SP < 0) {
+            this.Running = false;
+            this.Message = "Stack Overflow";
+        }
     }
 
     pop() {
-        if (++this.SP >= 0x100)
-            throw "Stack Empty";
+        if (++this.SP >= 0x100) {
+            this.Running = false;
+            this.Message = "Stack Empty";
+        }
         return this.RAM[this.SP + 0x100];
     }
 }

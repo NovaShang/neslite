@@ -82,9 +82,12 @@ describe("模拟器", () => {
             var s = new NesLite();
             s.RAM[0x600] = 0xA7;
             s.RAM[0x601] = 0x12;
+            s.RAM[0x602] = 0x12;
             assert.equal(s.ADDR.BRA(s), -(0x100 - 0xA7));
             assert.equal(s.PC, 0x600 + 1);
             assert.equal(s.ADDR.BRA(s), 0x12);
+            s.setFlag(s.FLAG.N, true);
+            assert.equal(s.ADDR.BRA(s), -0x12);
         });
         it("SNG", () => {
             var s = new NesLite();
@@ -117,6 +120,9 @@ describe("模拟器", () => {
             assert.equal(s.RAM[0x1FF], 0x12);
             assert.equal(s.RAM[0x1FE], 0x13);
             assert.equal(s.SP, 0xFD);
+            s.SP = 0x0;
+            s.push(0x19);
+            assert.equal(s.Message, "Stack Overflow")
         });
         it("Stack Pop", () => {
             var s = new NesLite();
@@ -126,6 +132,9 @@ describe("模拟器", () => {
             assert.equal(s.pop(), 0x13);
             assert.equal(s.pop(), 0x12);
             assert.equal(s.SP, 0xFF);
+            s.SP = 0x100;
+            s.pop();
+            assert.equal(s.Message, "Stack Empty")
         });
         it("Set NZ For Value : Pos", () => {
             var s = new NesLite();
@@ -203,6 +212,11 @@ describe("模拟器", () => {
             s.setY(66);
             s.INST.STY(s, 0x1000);
             assert.equal(s.RAM[0x1000], 66);
+        });
+        it("STY", () => {
+            let s = new NesLite();
+            s.INST.STZ(s, 0x1000);
+            assert.equal(s.RAM[0x1000], 0);
         });
         it("ADC No Carry", () => {
             let s = new NesLite();
@@ -320,6 +334,18 @@ describe("模拟器", () => {
             s.setY(100);
             s.INST.DEY(s, 0);
             assert.equal(s.Y, 99);
+        });
+        it("INA", () => {
+            let s = new NesLite();
+            s.setA(100);
+            s.INST.INA(s, 0);
+            assert.equal(s.A, 101);
+        });
+        it("DEA", () => {
+            let s = new NesLite();
+            s.setA(100);
+            s.INST.DEA(s, 0);
+            assert.equal(s.A, 99);
         });
         it("TAX", () => {
             let s = new NesLite();
@@ -677,6 +703,34 @@ describe("模拟器", () => {
             assert.equal(s.getFlag(s.FLAG.V), true);
             assert.equal(s.getFlag(s.FLAG.B), false);
         });
+        it("BRA", () => {
+            let s = new NesLite();
+            s.INST.BRA(s, 0x10);
+            assert.equal(s.PC, 0x0610);
+        });
+        it("BMI POS", () => {
+            let s = new NesLite();
+            s.INST.BMI(s, 0x10);
+            assert.equal(s.PC, 0x0600);
+        });
+        it("BMI NEG", () => {
+            let s = new NesLite();
+            s.setFlag(s.FLAG.N, true);
+            s.INST.BMI(s, 0x10);
+            assert.equal(s.PC, 0x0610);
+        });
+        it("BPL POS", () => {
+            let s = new NesLite();
+            s.INST.BPL(s, 0x10);
+            assert.equal(s.PC, 0x0610);
+        });
+        it("BPL NEG", () => {
+            let s = new NesLite();
+            s.setFlag(s.FLAG.N, true);
+            s.INST.BPL(s, 0x10);
+            assert.equal(s.PC, 0x0600);
+        });
+
 
     });
 });
