@@ -541,9 +541,9 @@ describe("模拟器", () => {
         });
         it("PHP", () => {
             let s = new NesLite();
-            s.P = 0x2F;
+            s.P = 0xC7;
             s.INST.PHP(s, 0);
-            assert.equal(s.RAM[0x1FF], 0x2F);
+            assert.equal(s.RAM[0x1FF], 0xCF);
             assert.equal(s.SP, 0xFE);
         });
         it("PLP", () => {
