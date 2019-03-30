@@ -647,5 +647,36 @@ describe("模拟器", () => {
             s.INST.RTS(s);
             assert.equal(s.PC, 0x622);
         });
+        it("NOP", () => {
+            let s = new NesLite();
+            s.INST.NOP(s);
+        });
+        it("BRK", () => {
+            let s = new NesLite();
+            s.PC = 0x622;
+            s.RAM[0xFFFE] = 0x30;
+            s.RAM[0xFFFF] = 0x40;
+            s.setFlag(s.FLAG.N, 1);
+            s.INST.BRK(s);
+            assert.equal(s.RAM[0x1FF], 0x06);
+            assert.equal(s.RAM[0x1FE], 0x23);
+            assert.equal(s.PC, 0x4030);
+            assert.equal(s.getFlag(s.FLAG.I), true);
+            assert.equal((s.RAM[0x1FD] & s.FLAG.N) > 0, true);
+        });
+        it("RTI", () => {
+            let s = new NesLite();
+            s.RAM[0x1FF] = 0x06;
+            s.RAM[0x1FE] = 0x23;
+            s.RAM[0x1FD] = s.FLAG.N | s.FLAG.V | s.FLAG.B;
+            s.PC = 0x4030;
+            s.SP = 0xFC;
+            s.INST.RTI(s);
+            assert.equal(s.PC, 0x0623);
+            assert.equal(s.getFlag(s.FLAG.N), true);
+            assert.equal(s.getFlag(s.FLAG.V), true);
+            assert.equal(s.getFlag(s.FLAG.B), false);
+        });
+
     });
 });

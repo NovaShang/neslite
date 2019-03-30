@@ -119,7 +119,7 @@ const INST = {
     RTI: (s, a) => {
         s.P = s.pop();
         s.setFlag(FLAG.B, 0);
-        s.PC = s.pop() | (s.pop() >> 8);
+        s.PC = s.pop() | (s.pop() << 8);
     },
 
     // 处理器状态
