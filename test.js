@@ -1,5 +1,6 @@
 const NesLite = require('./neslite')
 const assert = require('assert');
+const fs = require("fs");
 
 describe("模拟器", () => {
     describe("寻址方式", () => {
@@ -270,12 +271,12 @@ describe("模拟器", () => {
         });
         it("SBC Zero", () => {
             let s = new NesLite();
-            s.setA(100);
-            s.setFlag(s.FLAG.C, 0);
-            s.RAM[0x1000] = 100;
+            s.setA(0x40);
+            s.setFlag(s.FLAG.C, 1);
+            s.RAM[0x1000] = 0x40;
             s.INST.SBC(s, 0x1000);
-            assert.equal(s.A, 255);
-            assert.equal(s.getFlag(s.FLAG.C), 0);
+            assert.equal(s.A, 0);
+            assert.equal(s.getFlag(s.FLAG.C), 1);
             assert.equal(s.getFlag(s.FLAG.V), 0);
         });
         it("INC", () => {
@@ -730,7 +731,16 @@ describe("模拟器", () => {
             s.INST.BPL(s, 0x10);
             assert.equal(s.PC, 0x0600);
         });
-
-
     });
+    // describe("功能", () => {
+    //     it("运行nestest.nes", () => {
+    //         let s = new NesLite();
+    //         s.EnableLog = true;
+    //         let data = fs.readFileSync('./testRom/nestest.nes');
+    //         let result = s.load(data);
+    //         assert.equal(result, true);
+    //         s.PC = 0xC000;
+    //         s.run();
+    //     });
+    // });
 });
