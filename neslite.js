@@ -6,7 +6,7 @@ const FLAG = {
 }
 
 // 指令集
-const INST = {
+const I = {
 
     // 读取与储存
     LDA: (s, a) => s.setA(s.RAM[a]),
@@ -160,7 +160,7 @@ const INST = {
 }
 
 // 寻址方式
-const ADDR = {
+const A = {
     IMM: s => s.PC++,
     ZPG: s => s.RAM[s.PC++],
     ZPX: s => (s.RAM[s.PC++] + s.X) & 0xFF,
@@ -192,76 +192,78 @@ const ADDR = {
 
 // 操作码 - 汇编指令 - 寻址方式的对应关系
 const OPTS = {
-    0x69: [INST.ADC, ADDR.IMM, 2], 0x65: [INST.ADC, ADDR.ZPG, 3], 0x75: [INST.ADC, ADDR.ZPX, 4],
-    0x6D: [INST.ADC, ADDR.ABS, 4], 0x7D: [INST.ADC, ADDR.ABX, 4], 0x79: [INST.ADC, ADDR.ABY, 4],
-    0x61: [INST.ADC, ADDR.INX, 6], 0x71: [INST.ADC, ADDR.INY, 5], 0x72: [INST.ADC, ADDR.IND, 5],
-    0x29: [INST.AND, ADDR.IMM, 2], 0x25: [INST.AND, ADDR.ZPG, 3], 0x35: [INST.AND, ADDR.ZPX, 4],
-    0x2D: [INST.AND, ADDR.ABS, 4], 0x3D: [INST.AND, ADDR.ABX, 4], 0x39: [INST.AND, ADDR.ABY, 4],
-    0x21: [INST.AND, ADDR.INX, 6], 0x31: [INST.AND, ADDR.INY, 5], 0x32: [INST.AND, ADDR.IND, 5],
-    0x0A: [INST.ASL, ADDR.SNG, 2], 0x06: [INST.ASL, ADDR.ZPG, 5], 0x16: [INST.ASL, ADDR.ZPX, 6],
-    0x0E: [INST.ASL, ADDR.ABS, 6], 0x1E: [INST.ASL, ADDR.ABX, 7], 0x90: [INST.BCC, ADDR.BRA, 2],
-    0xB0: [INST.BCS, ADDR.BRA, 2], 0xF0: [INST.BEQ, ADDR.BRA, 2], 0x89: [INST.BIT, ADDR.IMM, 2],
-    0x24: [INST.BIT, ADDR.ZPG, 3], 0x34: [INST.NOP, ADDR.ZPX, 4], 0x2C: [INST.BIT, ADDR.ABS, 4],
-    0x3C: [INST.NOP, ADDR.ABX, 4], 0x30: [INST.BMI, ADDR.BRA, 2], 0xD0: [INST.BNE, ADDR.BRA, 2],
-    0x10: [INST.BPL, ADDR.BRA, 2], 0x80: [INST.NOP, ADDR.BRA, 3], 0x00: [INST.BRK, ADDR.SNG, 7],
-    0x50: [INST.BVC, ADDR.BRA, 2], 0x70: [INST.BVS, ADDR.BRA, 2], 0x18: [INST.CLC, ADDR.SNG, 2],
-    0xD8: [INST.CLD, ADDR.SNG, 2], 0x58: [INST.CLI, ADDR.SNG, 2], 0xB8: [INST.CLV, ADDR.SNG, 2],
-    0xC9: [INST.CMP, ADDR.IMM, 2], 0xC5: [INST.CMP, ADDR.ZPG, 3], 0xD5: [INST.CMP, ADDR.ZPX, 4],
-    0xCD: [INST.CMP, ADDR.ABS, 4], 0xDD: [INST.CMP, ADDR.ABX, 4], 0xD9: [INST.CMP, ADDR.ABY, 4],
-    0xC1: [INST.CMP, ADDR.INX, 6], 0xD1: [INST.CMP, ADDR.INY, 5], 0xD2: [INST.CMP, ADDR.IND, 5],
-    0xE0: [INST.CPX, ADDR.IMM, 2], 0xE4: [INST.CPX, ADDR.ZPG, 3], 0xEC: [INST.CPX, ADDR.ABS, 4],
-    0xC0: [INST.CPY, ADDR.IMM, 2], 0xC4: [INST.CPY, ADDR.ZPG, 3], 0xCC: [INST.CPY, ADDR.ABS, 4],
-    0x3A: [INST.NOP, ADDR.SNG, 2], 0xC6: [INST.DEC, ADDR.ZPG, 5], 0xD6: [INST.DEC, ADDR.ZPX, 6],
-    0xCE: [INST.DEC, ADDR.ABS, 6], 0xDE: [INST.DEC, ADDR.ABX, 7], 0xCA: [INST.DEX, ADDR.SNG, 2],
-    0x88: [INST.DEY, ADDR.SNG, 2], 0x49: [INST.EOR, ADDR.IMM, 2], 0x45: [INST.EOR, ADDR.ZPG, 3],
-    0x55: [INST.EOR, ADDR.ZPX, 4], 0x4D: [INST.EOR, ADDR.ABS, 4], 0x5D: [INST.EOR, ADDR.ABX, 4],
-    0x59: [INST.EOR, ADDR.ABY, 4], 0x41: [INST.EOR, ADDR.INX, 6], 0x51: [INST.EOR, ADDR.INY, 5],
-    0x52: [INST.EOR, ADDR.IND, 5], 0x1A: [INST.NOP, ADDR.SNG, 2], 0xE6: [INST.INC, ADDR.ZPG, 5],
-    0xF6: [INST.INC, ADDR.ZPX, 6], 0xEE: [INST.INC, ADDR.ABS, 6], 0xFE: [INST.INC, ADDR.ABX, 7],
-    0xE8: [INST.INX, ADDR.SNG, 2], 0xC8: [INST.INY, ADDR.SNG, 2], 0x4C: [INST.JMP, ADDR.ABS, 3],
-    0x6C: [INST.JMP, ADDR.IND, 5], 0x7C: [INST.NOP, ADDR.ABX, 6], 0x20: [INST.JSR, ADDR.ABS, 6],
-    0xA9: [INST.LDA, ADDR.IMM, 2], 0xA5: [INST.LDA, ADDR.ZPG, 3], 0xB5: [INST.LDA, ADDR.ZPX, 4],
-    0xAD: [INST.LDA, ADDR.ABS, 4], 0xBD: [INST.LDA, ADDR.ABX, 4], 0xB9: [INST.LDA, ADDR.ABY, 4],
-    0xA1: [INST.LDA, ADDR.INX, 6], 0xB1: [INST.LDA, ADDR.INY, 5], 0xB2: [INST.LDA, ADDR.IND, 5],
-    0xA2: [INST.LDX, ADDR.IMM, 2], 0xA6: [INST.LDX, ADDR.ZPG, 3], 0xB6: [INST.LDX, ADDR.ZPY, 4],
-    0xAE: [INST.LDX, ADDR.ABS, 4], 0xBE: [INST.LDX, ADDR.ABY, 4], 0xA0: [INST.LDY, ADDR.IMM, 2],
-    0xA4: [INST.LDY, ADDR.ZPG, 3], 0xB4: [INST.LDY, ADDR.ZPX, 4], 0xAC: [INST.LDY, ADDR.ABS, 4],
-    0xBC: [INST.LDY, ADDR.ABX, 4], 0x4A: [INST.LSR, ADDR.SNG, 2], 0x46: [INST.LSR, ADDR.ZPG, 5],
-    0x56: [INST.LSR, ADDR.ZPX, 6], 0x4E: [INST.LSR, ADDR.ABS, 6], 0x5E: [INST.LSR, ADDR.ABX, 7],
-    0xEA: [INST.NOP, ADDR.SNG, 2], 0x09: [INST.ORA, ADDR.IMM, 2], 0x05: [INST.ORA, ADDR.ZPG, 3],
-    0x15: [INST.ORA, ADDR.ZPX, 4], 0x0D: [INST.ORA, ADDR.ABS, 4], 0x1D: [INST.ORA, ADDR.ABX, 4],
-    0x19: [INST.ORA, ADDR.ABY, 4], 0x01: [INST.ORA, ADDR.INX, 6], 0x11: [INST.ORA, ADDR.INY, 5],
-    0x12: [INST.ORA, ADDR.IND, 5], 0x48: [INST.PHA, ADDR.SNG, 3], 0x08: [INST.PHP, ADDR.SNG, 3],
-    0xDA: [INST.NOP, ADDR.SNG, 3], 0x5A: [INST.NOP, ADDR.SNG, 3], 0x68: [INST.PLA, ADDR.SNG, 4],
-    0x28: [INST.PLP, ADDR.SNG, 4], 0xFA: [INST.NOP, ADDR.SNG, 4], 0x7A: [INST.NOP, ADDR.SNG, 4],
-    0x2A: [INST.ROL, ADDR.SNG, 2], 0x26: [INST.ROL, ADDR.ZPG, 5], 0x36: [INST.ROL, ADDR.ZPX, 6],
-    0x2E: [INST.ROL, ADDR.ABS, 6], 0x3E: [INST.ROL, ADDR.ABX, 7], 0x6A: [INST.ROR, ADDR.SNG, 2],
-    0x66: [INST.ROR, ADDR.ZPG, 5], 0x76: [INST.ROR, ADDR.ZPX, 6], 0x6E: [INST.ROR, ADDR.ABS, 6],
-    0x7E: [INST.ROR, ADDR.ABX, 7], 0x40: [INST.RTI, ADDR.SNG, 6], 0x60: [INST.RTS, ADDR.SNG, 6],
-    0xE9: [INST.SBC, ADDR.IMM, 2], 0xE5: [INST.SBC, ADDR.ZPG, 3], 0xF5: [INST.SBC, ADDR.ZPX, 4],
-    0xED: [INST.SBC, ADDR.ABS, 4], 0xFD: [INST.SBC, ADDR.ABX, 4], 0xF9: [INST.SBC, ADDR.ABY, 4],
-    0xE1: [INST.SBC, ADDR.INX, 6], 0xF1: [INST.SBC, ADDR.INY, 5], 0xF2: [INST.SBC, ADDR.IND, 5],
-    0x38: [INST.SEC, ADDR.SNG, 2], 0xF8: [INST.SED, ADDR.SNG, 2], 0x78: [INST.SEI, ADDR.SNG, 2],
-    0x85: [INST.STA, ADDR.ZPG, 3], 0x95: [INST.STA, ADDR.ZPX, 4], 0x8D: [INST.STA, ADDR.ABS, 4],
-    0x9D: [INST.STA, ADDR.ABX, 5], 0x99: [INST.STA, ADDR.ABY, 5], 0x81: [INST.STA, ADDR.INX, 6],
-    0x91: [INST.STA, ADDR.INY, 6], 0x92: [INST.STA, ADDR.IND, 5], 0x86: [INST.STX, ADDR.ZPG, 3],
-    0x96: [INST.STX, ADDR.ZPY, 4], 0x8E: [INST.STX, ADDR.ABS, 4], 0x84: [INST.STY, ADDR.ZPG, 3],
-    0x94: [INST.STY, ADDR.ZPX, 4], 0x8C: [INST.STY, ADDR.ABS, 4], 0x64: [INST.NOP, ADDR.ZPG, 3],
-    0x74: [INST.NOP, ADDR.ZPX, 4], 0x9C: [INST.STZ, ADDR.ABS, 4], 0x9E: [INST.STZ, ADDR.ABX, 5],
-    0xAA: [INST.TAX, ADDR.SNG, 2], 0xA8: [INST.TAY, ADDR.SNG, 2], 0x14: [INST.NOP, ADDR.ZPG, 5],
-    0x1C: [INST.NOP, ADDR.ABS, 6], 0x04: [INST.NOP, ADDR.ZPG, 5], 0x0C: [INST.NOP, ADDR.ABS, 6],
-    0xBA: [INST.TSX, ADDR.SNG, 2], 0x8A: [INST.TXA, ADDR.SNG, 2], 0x9A: [INST.TXS, ADDR.SNG, 2],
-    0x98: [INST.TYA, ADDR.SNG, 2], 0x44: [INST.NOP, ADDR.ZPG, 2], 0x54: [INST.NOP, ADDR.ZPX, 3],
-    0xD4: [INST.NOP, ADDR.ZPX, 3], 0xF4: [INST.NOP, ADDR.ZPX, 3], 0x5C: [INST.NOP, ADDR.ABX, 3],
-    0xDC: [INST.NOP, ADDR.ABX, 3], 0xFC: [INST.NOP, ADDR.ABX, 3]
+    0x00: [A.IMP, I.BRK, 7], 0x01: [A.INX, I.ORA, 6], 0x02: [A.IMP, I.HK2, 2], 0x03: [A.INX, I.SLO, 8],
+    0x04: [A.ZPG, I.NOP, 3], 0x05: [A.ZPG, I.ORA, 3], 0x06: [A.ZPG, I.ASL, 5], 0x07: [A.ZPG, I.SLO, 5],
+    0x08: [A.IMP, I.PHP, 3], 0x09: [A.IMM, I.ORA, 2], 0x0A: [A.IMP, I.ASL, 2], 0x0B: [A.IMM, I.ANC, 2],
+    0x0C: [A.ABS, I.NOP, 4], 0x0D: [A.ABS, I.ORA, 4], 0x0E: [A.ABS, I.ASL, 6], 0x0F: [A.ABS, I.SLO, 6],
+    0x10: [A.REL, I.BPL, 2], 0x11: [A.INY, I.ORA, 5], 0x12: [A.UNK, I.UNK, 2], 0x13: [A.INY, I.SLO, 8],
+    0x14: [A.ZPX, I.NOP, 4], 0x15: [A.ZPX, I.ORA, 4], 0x16: [A.ZPX, I.ASL, 6], 0x17: [A.ZPX, I.SLO, 6],
+    0x18: [A.IMP, I.CLC, 2], 0x19: [A.ABY, I.ORA, 4], 0x1A: [A.IMP, I.NOP, 2], 0x1B: [A.ABY, I.SLO, 7],
+    0x1C: [A.ABX, I.NOP, 4], 0x1D: [A.ABX, I.ORA, 4], 0x1E: [A.ABX, I.ASL, 7], 0x1F: [A.ABX, I.SLO, 7],
+    0x20: [A.ABS, I.JSR, 6], 0x21: [A.INX, I.AND, 6], 0x22: [A.UNK, I.UNK, 2], 0x23: [A.INX, I.RLA, 8],
+    0x24: [A.ZPG, I.BIT, 3], 0x25: [A.ZPG, I.AND, 3], 0x26: [A.ZPG, I.ROL, 5], 0x27: [A.ZPG, I.RLA, 5],
+    0x28: [A.IMP, I.PLP, 4], 0x29: [A.IMM, I.AND, 2], 0x2A: [A.IMP, I.ROL, 2], 0x2B: [A.IMM, I.ANC, 2],
+    0x2C: [A.ABS, I.BIT, 4], 0x2D: [A.ABS, I.AND, 4], 0x2E: [A.ABS, I.ROL, 6], 0x2F: [A.ABS, I.RLA, 6],
+    0x30: [A.REL, I.BMI, 2], 0x31: [A.INY, I.AND, 5], 0x32: [A.UNK, I.UNK, 2], 0x33: [A.INY, I.RLA, 8],
+    0x34: [A.ZPX, I.NOP, 4], 0x35: [A.ZPX, I.AND, 4], 0x36: [A.ZPX, I.ROL, 6], 0x37: [A.ZPX, I.RLA, 6],
+    0x38: [A.IMP, I.SEC, 2], 0x39: [A.ABY, I.AND, 4], 0x3A: [A.IMP, I.NOP, 2], 0x3B: [A.ABY, I.RLA, 7],
+    0x3C: [A.ABX, I.NOP, 4], 0x3D: [A.ABX, I.AND, 4], 0x3E: [A.ABX, I.ROL, 7], 0x3F: [A.ABX, I.RLA, 7],
+    0x40: [A.IMP, I.RTI, 6], 0x41: [A.INX, I.EOR, 6], 0x42: [A.UNK, I.UNK, 2], 0x43: [A.INX, I.SRE, 8],
+    0x44: [A.ZPG, I.NOP, 3], 0x45: [A.ZPG, I.EOR, 3], 0x46: [A.ZPG, I.LSR, 5], 0x47: [A.ZPG, I.SRE, 5],
+    0x48: [A.IMP, I.PHA, 3], 0x49: [A.IMM, I.EOR, 2], 0x4A: [A.IMP, I.LSR, 2], 0x4B: [A.IMM, I.ASR, 2],
+    0x4C: [A.ABS, I.JMP, 3], 0x4D: [A.ABS, I.EOR, 4], 0x4E: [A.ABS, I.LSR, 6], 0x4F: [A.ABS, I.SRE, 6],
+    0x50: [A.REL, I.BVC, 2], 0x51: [A.INY, I.EOR, 5], 0x52: [A.UNK, I.UNK, 2], 0x53: [A.INY, I.SRE, 8],
+    0x54: [A.ZPX, I.NOP, 4], 0x55: [A.ZPX, I.EOR, 4], 0x56: [A.ZPX, I.LSR, 6], 0x57: [A.ZPX, I.SRE, 6],
+    0x58: [A.IMP, I.CLI, 2], 0x59: [A.ABY, I.EOR, 4], 0x5A: [A.IMP, I.NOP, 2], 0x5B: [A.ABY, I.SRE, 7],
+    0x5C: [A.ABX, I.NOP, 4], 0x5D: [A.ABX, I.EOR, 4], 0x5E: [A.ABX, I.LSR, 7], 0x5F: [A.ABX, I.SRE, 7],
+    0x60: [A.IMP, I.RTS, 6], 0x61: [A.INX, I.ADC, 6], 0x62: [A.UNK, I.UNK, 2], 0x63: [A.INX, I.RRA, 8],
+    0x64: [A.ZPG, I.NOP, 3], 0x65: [A.ZPG, I.ADC, 3], 0x66: [A.ZPG, I.ROR, 5], 0x67: [A.ZPG, I.RRA, 5],
+    0x68: [A.IMP, I.PLA, 4], 0x69: [A.IMM, I.ADC, 2], 0x6A: [A.IMP, I.ROR, 2], 0x6B: [A.IMM, I.ARR, 2],
+    0x6C: [A.IND, I.JMP, 5], 0x6D: [A.ABS, I.ADC, 4], 0x6E: [A.ABS, I.ROR, 6], 0x6F: [A.ABS, I.RRA, 6],
+    0x70: [A.REL, I.BVS, 2], 0x71: [A.INY, I.ADC, 5], 0x72: [A.UNK, I.UNK, 2], 0x73: [A.INY, I.RRA, 8],
+    0x74: [A.ZPX, I.NOP, 4], 0x75: [A.ZPX, I.ADC, 4], 0x76: [A.ZPX, I.ROR, 6], 0x77: [A.ZPX, I.RRA, 6],
+    0x78: [A.IMP, I.SEI, 2], 0x79: [A.ABY, I.ADC, 4], 0x7A: [A.IMP, I.NOP, 2], 0x7B: [A.ABY, I.RRA, 7],
+    0x7C: [A.ABX, I.NOP, 4], 0x7D: [A.ABX, I.ADC, 4], 0x7E: [A.ABX, I.ROR, 7], 0x7F: [A.ABX, I.RRA, 7],
+    0x80: [A.IMM, I.NOP, 2], 0x81: [A.INX, I.STA, 6], 0x82: [A.IMM, I.NOP, 2], 0x83: [A.INX, I.SAX, 6],
+    0x84: [A.ZPG, I.STY, 3], 0x85: [A.ZPG, I.STA, 3], 0x86: [A.ZPG, I.STX, 3], 0x87: [A.ZPG, I.SAX, 3],
+    0x88: [A.IMP, I.DEY, 2], 0x89: [A.IMM, I.NOP, 2], 0x8A: [A.IMP, I.TXA, 2], 0x8B: [A.IMM, I.XAA, 2],
+    0x8C: [A.ABS, I.STY, 4], 0x8D: [A.ABS, I.STA, 4], 0x8E: [A.ABS, I.STX, 4], 0x8F: [A.ABS, I.SAX, 4],
+    0x90: [A.REL, I.BCC, 2], 0x91: [A.INY, I.STA, 6], 0x92: [A.UNK, I.UNK, 2], 0x93: [A.INY, I.AHX, 6],
+    0x94: [A.ZPX, I.STY, 4], 0x95: [A.ZPX, I.STA, 4], 0x96: [A.ZPY, I.STX, 4], 0x97: [A.ZPY, I.SAX, 4],
+    0x98: [A.IMP, I.TYA, 2], 0x99: [A.ABY, I.STA, 5], 0x9A: [A.IMP, I.TXS, 2], 0x9B: [A.ABY, I.TAS, 5],
+    0x9C: [A.ABX, I.SHY, 5], 0x9D: [A.ABX, I.STA, 5], 0x9E: [A.ABY, I.SHX, 5], 0x9F: [A.ABY, I.AHX, 5],
+    0xA0: [A.IMM, I.LDY, 2], 0xA1: [A.INX, I.LDA, 6], 0xA2: [A.IMM, I.LDX, 2], 0xA3: [A.INX, I.LAX, 6],
+    0xA4: [A.ZPG, I.LDY, 3], 0xA5: [A.ZPG, I.LDA, 3], 0xA6: [A.ZPG, I.LDX, 3], 0xA7: [A.ZPG, I.LAX, 3],
+    0xA8: [A.IMP, I.TAY, 2], 0xA9: [A.IMM, I.LDA, 2], 0xAA: [A.IMP, I.TAX, 2], 0xAB: [A.IMM, I.LAX, 2],
+    0xAC: [A.ABS, I.LDY, 4], 0xAD: [A.ABS, I.LDA, 4], 0xAE: [A.ABS, I.LDX, 4], 0xAF: [A.ABS, I.LAX, 4],
+    0xB0: [A.REL, I.BCS, 2], 0xB1: [A.INY, I.LDA, 5], 0xB2: [A.UNK, I.UNK, 2], 0xB3: [A.INY, I.LAX, 5],
+    0xB4: [A.ZPX, I.LDY, 4], 0xB5: [A.ZPX, I.LDA, 4], 0xB6: [A.ZPY, I.LDX, 4], 0xB7: [A.ZPY, I.LAX, 4],
+    0xB8: [A.IMP, I.CLV, 2], 0xB9: [A.ABY, I.LDA, 4], 0xBA: [A.IMP, I.TSX, 2], 0xBB: [A.ABY, I.LAS, 4],
+    0xBC: [A.ABX, I.LDY, 4], 0xBD: [A.ABX, I.LDA, 4], 0xBE: [A.ABY, I.LDX, 4], 0xBF: [A.ABY, I.LAX, 4],
+    0xC0: [A.IMM, I.CPY, 2], 0xC1: [A.INX, I.CMP, 6], 0xC2: [A.IMM, I.NOP, 2], 0xC3: [A.INX, I.DCP, 8],
+    0xC4: [A.ZPG, I.CPY, 3], 0xC5: [A.ZPG, I.CMP, 3], 0xC6: [A.ZPG, I.DEC, 5], 0xC7: [A.ZPG, I.DCP, 5],
+    0xC8: [A.IMP, I.INY, 2], 0xC9: [A.IMM, I.CMP, 2], 0xCA: [A.IMP, I.DEX, 2], 0xCB: [A.IMM, I.AXS, 2],
+    0xCC: [A.ABS, I.CPY, 4], 0xCD: [A.ABS, I.CMP, 4], 0xCE: [A.ABS, I.DEC, 6], 0xCF: [A.ABS, I.DCP, 6],
+    0xD0: [A.REL, I.BNE, 2], 0xD1: [A.INY, I.CMP, 5], 0xD2: [A.UNK, I.UNK, 2], 0xD3: [A.INY, I.DCP, 8],
+    0xD4: [A.ZPX, I.NOP, 4], 0xD5: [A.ZPX, I.CMP, 4], 0xD6: [A.ZPX, I.DEC, 6], 0xD7: [A.ZPX, I.DCP, 6],
+    0xD8: [A.IMP, I.CLD, 2], 0xD9: [A.ABY, I.CMP, 4], 0xDA: [A.IMP, I.NOP, 2], 0xDB: [A.ABY, I.DCP, 7],
+    0xDC: [A.ABX, I.NOP, 4], 0xDD: [A.ABX, I.CMP, 4], 0xDE: [A.ABX, I.DEC, 7], 0xDF: [A.ABX, I.DCP, 7],
+    0xE0: [A.IMM, I.CPX, 2], 0xE1: [A.INX, I.SBC, 6], 0xE2: [A.IMM, I.NOP, 2], 0xE3: [A.INX, I.ISB, 8],
+    0xE4: [A.ZPG, I.CPX, 3], 0xE5: [A.ZPG, I.SBC, 3], 0xE6: [A.ZPG, I.INC, 5], 0xE7: [A.ZPG, I.ISB, 5],
+    0xE8: [A.IMP, I.INX, 2], 0xE9: [A.IMM, I.SBC, 2], 0xEA: [A.IMP, I.NOP, 2], 0xEB: [A.IMM, I.SBC, 2],
+    0xEC: [A.ABS, I.CPX, 4], 0xED: [A.ABS, I.SBC, 4], 0xEE: [A.ABS, I.INC, 6], 0xEF: [A.ABS, I.ISB, 6],
+    0xF0: [A.REL, I.BEQ, 2], 0xF1: [A.INY, I.SBC, 5], 0xF2: [A.UNK, I.UNK, 2], 0xF3: [A.INY, I.ISB, 8],
+    0xF4: [A.ZPX, I.NOP, 4], 0xF5: [A.ZPX, I.SBC, 4], 0xF6: [A.ZPX, I.INC, 6], 0xF7: [A.ZPX, I.ISB, 6],
+    0xF8: [A.IMP, I.SED, 2], 0xF9: [A.ABY, I.SBC, 4], 0xFA: [A.IMP, I.NOP, 2], 0xFB: [A.ABY, I.ISB, 7],
+    0xFC: [A.ABX, I.NOP, 4], 0xFD: [A.ABX, I.SBC, 4], 0xFE: [A.ABX, I.INC, 7], 0xFF: [A.ABX, I.ISB, 7],
 }
 
 module.exports = class NesLite {
 
     constructor() {
         this.OPTS = OPTS;
-        this.ADDR = ADDR;
-        this.INST = INST;
+        this.ADDR = A;
+        this.INST = I;
         this.FLAG = FLAG;
         this.RAM = new Uint8Array(256 * 256);
         this.reset();
@@ -310,10 +312,10 @@ module.exports = class NesLite {
         let pos = this.PC;
         let opt = OPTS[this.RAM[this.PC++]];
         if (!opt)
-            throw ("找不到操作码");
+            console.log("找不到操作码 " + this.RAM[pos].toString(16).toUpperCase());
         let addr = opt[1](this);
         let length = this.PC - pos;
-        if (this.log) this.log(this, pos, opt[0].name, opt[1].name, addr, length);
+        if (this.log) this.log(this, pos, opt[0].name, length);
         this.CYC += opt[2];
         opt[0](this, addr)
         return this.run();

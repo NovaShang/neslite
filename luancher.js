@@ -5,7 +5,7 @@ const color = require("colors");
 let logs = fs.readFileSync('./testRom/nestest.log', 'utf-8').split('\n');
 let logIndex = 0;
 
-function log(nes, pos, inst, method, addr, length) {
+function log(nes, pos, inst, length) {
     // 格式化字节
     let fByte = i => i.toString(16).toUpperCase().padStart(2, '0');
     let fWord = i => i.toString(16).toUpperCase().padStart(4, '0');
@@ -21,11 +21,10 @@ function log(nes, pos, inst, method, addr, length) {
         + 'P:' + fByte(nes.P) + ' ' // P
         + 'SP:' + fByte(nes.SP) // SP
     if (log == logs[logIndex])
-        console.log(logIndex.toString().padStart(4,'0')+'  '+ log.green);
+        console.log(logIndex.toString().padStart(4, '0') + '  ' + log.green);
     else {
-        console.log(logs[logIndex]);
-        console.log(log.red);
-        throw ("不匹配");
+        console.log("++++++" + logs[logIndex]);
+        console.log("------" + log.red);
     }
     logIndex++;
 }

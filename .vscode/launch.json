@@ -11,6 +11,12 @@
             "program": "${workspaceFolder}\\luancher.js"
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Current File",
+            "program": "${file}"
+        },
+        {
             "name": "Run mocha",
             "type": "node",
             "request": "launch",
