@@ -291,8 +291,8 @@ var NesLite = class {
     reset() {
         this.A = this.X = this.Y = 0;
         this.PC = 0x600;
-        this.SP = 0xfd;
-        this.P = 0X24;
+        this.SP = 0xff;
+        this.P = 0X00;
         this.CYC = 7;
         this.Message = "";
         this.Running = true;
@@ -323,19 +323,13 @@ var NesLite = class {
     }
 
     /**
-<<<<<<< HEAD
-     * 启动虚拟机
-=======
      * 开始运行虚拟机
->>>>>>> 213f5f3bfffe403cecf4bb658112c1dcbe7df86f
      */
     run() {
         while (true) {
             if (!this.Running) return;
             let pos = this.PC;
-            let opt = OPTS[this.RAM[this.PC++]];
-            if (!opt)
-                throw ("找不到操作码 " + this.RAM[pos].toString(16).toUpperCase());
+            let opt = OPTS[this.RAM[this.PC++]]
             let addr = opt[0](this);
             let length = this.PC - pos;
             if (this.log) this.log(this, pos, opt[1].name, length);
