@@ -258,7 +258,7 @@ const OPTS = {
     0xFC: [A.ABX, I.NOP, 4], 0xFD: [A.ABX, I.SBC, 4], 0xFE: [A.ABX, I.INC, 7], 0xFF: [A.ABX, I.ISB, 7],
 }
 
-module.exports = class NesLite {
+var NesLite = class {
 
     constructor() {
         this.OPTS = OPTS;
@@ -284,7 +284,6 @@ module.exports = class NesLite {
 
     /**
      * 加载一个NES文件中的数据
-     * @param {Uint8Array} data 
      */
     load(data) {
         // 验证文件头
@@ -307,6 +306,9 @@ module.exports = class NesLite {
         return true;
     }
 
+    /**
+     * 启动虚拟机
+     */
     run() {
         if (!this.Running) return;
         let pos = this.PC;
@@ -321,9 +323,8 @@ module.exports = class NesLite {
         return this.run();
     }
 
+    render() {
 
-    pause() {
-        this.Running = false;
     }
 
     setA(value) {
@@ -379,3 +380,6 @@ module.exports = class NesLite {
         return this.RAM[this.SP + 0x100];
     }
 }
+
+if (module)
+    module.exports = NesLite;
